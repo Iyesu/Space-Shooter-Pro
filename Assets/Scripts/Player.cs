@@ -11,21 +11,54 @@ public class Player : MonoBehaviour
     [SerializeField]
     private GameObject _laserPrefab;
     [SerializeField]
-    private float _speed = 3.5f;
+    private GameObject _tripleShopPrefab;
+    [SerializeField]
+    private GameObject _shieldVisualizer;
+    [SerializeField]
+    private float _speed = 5.0f;
+    private int _speedMultiplier = 2;
     [SerializeField]
     private float _fireRate = 0.15f;
     private float _canFire = -1f;
 
     private float xRightLimit = 9f;
     private float xLeftLimit = -9f;
-    private float yTopLimit = 6.3f;
-    private float yBottomLimit = -0.93f;
+    private float yTopLimit = 6.5f;
+    private float yBottomLimit = -1.0f;
+
+    [SerializeField]
+    private int _lives = 3;
+
+    private SpawnManager _spawnManager;
+
+    private bool _tripleShotActive = false;
+    private bool _speedPowerUpActive = false;
+    private bool _shieldPowerUpActive = false;
+
+    [SerializeField]
+    private int _score = 0;
+
+    private UIManager _uiManager;
 
     // Start is called before the first frame update
     void Start()
     {
         // Assign start position = new position(0, 0, 0)
         transform.position = new Vector3(0, 0, 0);
+
+        _spawnManager = GameObject.Find("Spawn Manager").GetComponent<SpawnManager>();
+        _uiManager = GameObject.Find("Canvas").GetComponent<UIManager>();
+
+        //Debug code
+        if (_spawnManager == null)
+        {
+            Debug.LogError("The Spawn Manager is NULL.");
+        }
+
+        if ( _uiManager == null)
+        {
+            Debug.LogError("The UI Manager is NULL.");
+        }
     }
 
     // Update is called once per frame
@@ -52,8 +85,10 @@ public class Player : MonoBehaviour
         float verticalInput = Input.GetAxis("Vertical");
         Vector3 direction = new Vector3(horizontalInput, verticalInput, 0);
 
+        float multiplier = _speedPowerUpActive ? _speedMultiplier : 1;
+
         //works separately, but we can combine them into one line of code
-        transform.Translate(direction * _speed * Time.deltaTime);
+        transform.Translate(direction * (_speed * multiplier) * Time.deltaTime);
         //cleaner code that does the same thing as the code below, but we can use Mathf.Clamp to limit the player's movement within the bounds of the screen
         transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, yBottomLimit, yTopLimit), 0);
 
@@ -86,7 +121,75 @@ public class Player : MonoBehaviour
         //the check happens again, Time.time MUST be greater than the value set by _canFire, effectively creating
         //a cooldown for the laser fire rate
         _canFire = Time.time + _fireRate;
+
+        GameObject laserType = _laserPrefab;
+        Vector3 shotPosition = transform.position + new Vector3(0, 0.9f, 0);
+
+        if (_tripleShotActive)
+        {
+            laserType = _tripleShopPrefab;
+            shotPosition = transform.position;
+        }
+
         //Quarternion.identity means no rotation, the laser will be instantiated with the same rotation as the player
-        Instantiate(_laserPrefab, transform.position + new Vector3(0, 0.75f, 0), Quaternion.identity);
+        Instantiate(laserType, shotPosition, Quaternion.identity);
+    }
+
+    private IEnumerator TripleShotPowerDownRoutine()
+    {
+        yield return new WaitForSeconds(5.0f);
+        _tripleShotActive = false;
+    }
+
+    private IEnumerator SpeedPowerUpPickup()
+    {
+        yield return new WaitForSeconds(7.0f);
+        _speedPowerUpActive = false;
+    }
+
+    public void Damage()
+    {
+        if (_shieldPowerUpActive)
+        {
+            _shieldPowerUpActive = false;
+            _shieldVisualizer.SetActive(false);
+
+            return;
+        }
+
+        _lives--;
+
+        _uiManager.UpdateLives(_lives);
+
+        if (_lives <= 0)
+        {
+            _spawnManager.OnPlayerDeath();
+            Destroy(this.gameObject);
+        }
+    }
+    public void OnTripleShotPickup()
+    {
+        _tripleShotActive = true;
+        StartCoroutine(TripleShotPowerDownRoutine());
+    }
+
+    public void OnSpeedPickup()
+    {
+        _speedPowerUpActive = true;
+        StartCoroutine(SpeedPowerUpPickup());
+    }
+
+    public void OnShieldPickup()
+    {
+        _shieldPowerUpActive = true;
+
+        _shieldVisualizer.SetActive(true);
+    }
+
+    public void OnEnemyKill(int points)
+    {
+        _score += points;
+
+        _uiManager.UpdateScore(_score);
     }
 }
