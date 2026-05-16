@@ -12,6 +12,9 @@ public class Enemy : MonoBehaviour
     private float _xEnemySpawnMax = 7.0f;
 
     private Player _player;
+    private Animator _animator;
+
+    private bool _isEnemyDead = false;
 
     // Start is called before the first frame update
     void Start()
@@ -19,6 +22,17 @@ public class Enemy : MonoBehaviour
         transform.position = setPosition();
 
         _player = GameObject.Find("Player").GetComponent<Player>();
+        _animator = GetComponent<Animator>();
+
+        if (_player == null)
+        {
+            Debug.LogError("Player is NULL.");
+        }
+
+        if (_animator == null)
+        {
+            Debug.LogError("Animator is NULL.");
+        }
     }
 
     // Update is called once per frame
@@ -26,7 +40,7 @@ public class Enemy : MonoBehaviour
     {
         transform.Translate(Vector3.down * _speed * Time.deltaTime);
 
-        if (transform.position.y <= -2.7f)
+        if (transform.position.y <= -2.7f && !_isEnemyDead)
         {
             transform.position = setPosition();
         }
@@ -46,7 +60,7 @@ public class Enemy : MonoBehaviour
                 player.Damage();
             }
 
-            Destroy(this.gameObject);
+            DestroyEnemy();
         }
 
         if (other.tag == "Laser")
@@ -60,8 +74,19 @@ public class Enemy : MonoBehaviour
                 _player.OnEnemyKill(Random.Range(8, 13));
             }
 
-            Destroy(this.gameObject);
+            DestroyEnemy();
         }
+    }
+
+    private void DestroyEnemy()
+    {
+        //Play explosion animation
+        _animator.SetTrigger("OnEnemyDeath");
+        //Disable the collider so the animation can play without interruption
+        GetComponent<Collider2D>().enabled = false;
+        _isEnemyDead = true;
+
+        Destroy(this.gameObject, 2.8f);
     }
 
     private Vector3 setPosition()

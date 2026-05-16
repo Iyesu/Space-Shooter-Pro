@@ -17,25 +17,23 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     private Sprite[] _liveSprites;
 
-    private bool isPlayerDead = false;
-
     Player _player;
+
+    private GameManager _gameManager;
 
     // Start is called before the first frame update
     void Start()
     {
+        _gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+
+        if (_gameManager == null)
+        {
+            Debug.LogError("The Game Manager is NULL.");
+        }
+
         _scoreText.text = "Score: " + 0;
         _gameOverText.gameObject.SetActive(false);
         _restartText.gameObject.SetActive(false);
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.R) && isPlayerDead)
-        {
-            //Reload the current scene
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
     }
 
     public void UpdateScore(int score)
@@ -51,7 +49,7 @@ public class UIManager : MonoBehaviour
         {
             _gameOverText.gameObject.SetActive(true);
             _restartText.gameObject.SetActive(true);
-            isPlayerDead = true;
+            _gameManager.GameOver();
 
             StartCoroutine(GameOverSequence());
         }

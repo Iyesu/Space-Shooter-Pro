@@ -15,6 +15,10 @@ public class Player : MonoBehaviour
     [SerializeField]
     private GameObject _shieldVisualizer;
     [SerializeField]
+    private GameObject _damageVisualizerRight, _damageVisualizerLeft;
+    [SerializeField]
+    private GameObject _explosionPrefab;
+    [SerializeField]
     private float _speed = 5.0f;
     private int _speedMultiplier = 2;
     [SerializeField]
@@ -40,9 +44,16 @@ public class Player : MonoBehaviour
 
     private UIManager _uiManager;
 
+    private GameObject[] _damageVisualizer;
+
+    private int _damageType;
+
     // Start is called before the first frame update
     void Start()
     {
+        _damageVisualizer = new GameObject[] { _damageVisualizerRight, _damageVisualizerLeft };
+        _damageType = Random.Range(0, _damageVisualizer.Length);
+
         // Assign start position = new position(0, 0, 0)
         transform.position = new Vector3(0, 0, 0);
 
@@ -159,12 +170,27 @@ public class Player : MonoBehaviour
 
         _lives--;
 
+        GameObject damageVisualizer = _damageVisualizer[_damageType];
+
+        if (_lives == 2)
+        {
+            damageVisualizer.SetActive(true);
+
+            _damageType = _damageType == 0 ? 1 : 0;
+        } else if (_lives == 1)
+        {
+            damageVisualizer.SetActive(true);
+        }
+
         _uiManager.UpdateLives(_lives);
 
         if (_lives <= 0)
         {
             _spawnManager.OnPlayerDeath();
-            Destroy(this.gameObject);
+
+            GameObject explosion = Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
+
+            Destroy(this.gameObject, 0.25f);
         }
     }
     public void OnTripleShotPickup()

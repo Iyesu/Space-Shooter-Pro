@@ -6,6 +6,8 @@ public class SpawnManager : MonoBehaviour
 {
     [SerializeField]
     private GameObject _enemyPrefab;
+    [SerializeField]
+    private GameObject _asteroidPrefab;
     [SerializeField] 
     private GameObject[] _powerUps;
     [SerializeField]
@@ -20,8 +22,7 @@ public class SpawnManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(EnemySpawnRoutine());
-        StartCoroutine(PowerUpSpawnRoutine());
+        Instantiate(_asteroidPrefab, new Vector3(0, 5, 0), Quaternion.identity);
     }
 
     private IEnumerator EnemySpawnRoutine()
@@ -50,5 +51,11 @@ public class SpawnManager : MonoBehaviour
     public void OnPlayerDeath()
     {
         _stopSpawning = true;
+    }
+
+    public void StartSpawning()
+    {
+        StartCoroutine(EnemySpawnRoutine());
+        StartCoroutine(PowerUpSpawnRoutine());
     }
 }
