@@ -52,12 +52,15 @@ public class Player : MonoBehaviour
     [SerializeField]
     private AudioClip _laserSoundClip;
 
+    private Animator _animator;
+
     // Start is called before the first frame update
     void Start()
     {
         _damageVisualizer = new GameObject[] { _damageVisualizerRight, _damageVisualizerLeft };
         _damageType = Random.Range(0, _damageVisualizer.Length);
         _audioSource = GetComponent<AudioSource>();
+        _animator = GetComponent<Animator>();
 
         // Assign start position = new position(0, 0, 0)
         transform.position = new Vector3(0, 0, 0);
@@ -80,6 +83,11 @@ public class Player : MonoBehaviour
         {
             Debug.LogError("The Audio Source is NULL.");
         }
+
+        if (_animator == null)
+        {
+            Debug.LogError("The Animator is NULL.");
+        }
     }
 
     // Update is called once per frame
@@ -92,6 +100,25 @@ public class Player : MonoBehaviour
             FireLaser();
         }
 
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            _animator.SetBool("isTurningLeft", true);
+        }
+
+        if (Input.GetKeyUp(KeyCode.A))
+        {
+            _animator.SetBool("isTurningLeft", false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            _animator.SetBool("isTurningRight", true);
+        }
+
+        if (Input.GetKeyUp(KeyCode.D))
+        {
+            _animator.SetBool("isTurningRight", false);
+        }
     }
 
     /**
