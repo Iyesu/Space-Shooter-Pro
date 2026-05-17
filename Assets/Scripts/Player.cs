@@ -48,11 +48,16 @@ public class Player : MonoBehaviour
 
     private int _damageType;
 
+    private AudioSource _audioSource;
+    [SerializeField]
+    private AudioClip _laserSoundClip;
+
     // Start is called before the first frame update
     void Start()
     {
         _damageVisualizer = new GameObject[] { _damageVisualizerRight, _damageVisualizerLeft };
         _damageType = Random.Range(0, _damageVisualizer.Length);
+        _audioSource = GetComponent<AudioSource>();
 
         // Assign start position = new position(0, 0, 0)
         transform.position = new Vector3(0, 0, 0);
@@ -69,6 +74,11 @@ public class Player : MonoBehaviour
         if ( _uiManager == null)
         {
             Debug.LogError("The UI Manager is NULL.");
+        }
+
+        if (_audioSource == null)
+        {
+            Debug.LogError("The Audio Source is NULL.");
         }
     }
 
@@ -144,6 +154,9 @@ public class Player : MonoBehaviour
 
         //Quarternion.identity means no rotation, the laser will be instantiated with the same rotation as the player
         Instantiate(laserType, shotPosition, Quaternion.identity);
+
+        _audioSource.clip = _laserSoundClip;
+        _audioSource.Play();
     }
 
     private IEnumerator TripleShotPowerDownRoutine()

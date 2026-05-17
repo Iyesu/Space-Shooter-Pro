@@ -16,6 +16,9 @@ public class Enemy : MonoBehaviour
 
     private bool _isEnemyDead = false;
 
+    private AudioSource _audioSource;
+    private GameObject _audioManager;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -23,6 +26,8 @@ public class Enemy : MonoBehaviour
 
         _player = GameObject.Find("Player").GetComponent<Player>();
         _animator = GetComponent<Animator>();
+
+        _audioManager = GameObject.Find("Audio Manager");
 
         if (_player == null)
         {
@@ -32,6 +37,26 @@ public class Enemy : MonoBehaviour
         if (_animator == null)
         {
             Debug.LogError("Animator is NULL.");
+        }
+
+        //This type is best used when you have a lot of audio sources or multiple game objects that use the same audio source.
+        //It allows you to centralize your audio management and make it easier to adjust audio settings across the entire game.
+        //Other than that, you can also use the same audio source for multiple game objects, which can save memory and improve performance.
+        //In this case, the best option for an enemy destroy sound is the same way we did to the Player.
+        if (_audioManager == null)
+        {
+            Debug.LogError("The Audio Manager is NULL.");
+        }
+        else
+        {
+            Transform explosionSource = _audioManager.transform.Find("Explosion");
+
+            if (explosionSource == null)
+            {
+                Debug.LogError("Explosion audio source is NULL.");
+            }
+
+            _audioSource = explosionSource.GetComponent<AudioSource>();
         }
     }
 
@@ -87,6 +112,7 @@ public class Enemy : MonoBehaviour
         _isEnemyDead = true;
 
         Destroy(this.gameObject, 2.8f);
+        _audioSource.PlayDelayed(0.1f);
     }
 
     private Vector3 setPosition()
